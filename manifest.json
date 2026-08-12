@@ -1,0 +1,9 @@
+{
+  "name": "NEXA Evidence",
+  "short_name": "NEXA",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#1d1f20",
+  "icons": []
+}
