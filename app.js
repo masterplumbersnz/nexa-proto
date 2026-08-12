@@ -25,3 +25,50 @@ if (saved) {
     show('#home');
   });
 }
+// Resize an image file down to maxDim on its longest edge, return a JPEG data URL
+function shrink(file, maxDim) {
+  return new Promise((resolve) => {
+    const img = new Image();
+    const reader = new FileReader();
+    reader.onload = (e) => { img.src = e.target.result; };
+    img.onload = () => {
+      let { width, height } = img;
+      if (width > height && width > maxDim) {
+        height = Math.round(height * (maxDim / width));
+        width = maxDim;
+      } else if (height > maxDim) {
+        width = Math.round(width * (maxDim / height));
+        height = maxDim;
+      }
+      const canvas = document.createElement('canvas');
+      canvas.width = width;
+      canvas.height = height;
+      canvas.getContext('2d').drawImage(img, 0, 0, width, height);
+      resolve(canvas.toDataURL('image/jpeg', 0.8));
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
+document.getElementById('cam').onchange = async () => {
+  const file = document.getElementById('cam').files[0];
+  if (!file) return;
+
+  const statusEl = document.getElementById('status');
+  statusEl.textContent = 'Shrinking…';
+  const dataUrl = await shrink(file, 1400);
+
+  statusEl.textContent = 'Uploading…';
+  const { url } = await upload(file.name, 'image/jpeg', dataUrl);
+
+  statusEl.textContent = 'Saving…';
+  const row = await append('Evidence', {
+    subtask_id: 'test-subtask',      // placeholder until Tasks/Subtasks screens exist
+    type: 'photo',
+    url,
+    by_email: state.me.email
+  });
+
+  statusEl.textContent = '✅ Uploaded';
+  console.log('Evidence row:', row);
+};
