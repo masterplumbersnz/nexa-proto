@@ -1,4 +1,4 @@
-const API = 'https://script.google.com/macros/s/AKfycbxEiNW3w8yBNaNflxXIzVo9wkbPH27w0XbAVY56ylewIwANjte0A7UaQ5QgkAIDHa4CWw/exec';
+const API = 'https://script.google.com/macros/s/AKfycbyig0z9BDrJwU-I7vaV30ThmbtM7FDELK58a4fB8CoFZY8ae3dJBTT7MFcLgVZgYEhQyA/exec';
 const TOKEN = 'nexa-pilot-2026';
 
 async function call(payload) {
