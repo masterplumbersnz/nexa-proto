@@ -17,17 +17,28 @@
 </section>
 
 <section id="home" hidden>
-  <h2 id="welcome"></h2>
-  <p>Signed in. Real screens go here next.</p>
-  <button onclick="show('#capture')">Add evidence photo</button>
-</section>
+        <h2 id="welcome"></h2>
+        <div id="projectList"></div>
+    </section>
 
-<section id="capture" hidden>
-  <h2>Add photo</h2>
-  <input type="file" accept="image/*" capture="environment" id="cam">
-  <p id="status"></p>
-  <button onclick="show('#home')">Back</button>
-</section>
+    <section id="tasks" hidden>
+        <h2 id="projectTitle"></h2>
+        <div id="taskList"></div>
+        <button onclick="show('#home')">Back</button>
+    </section>
+
+    <section id="subtasks" hidden>
+        <h2 id="taskTitle"></h2>
+        <div id="subtaskList"></div>
+        <button onclick="show('#tasks')">Back</button>
+    </section>
+
+    <section id="capture" hidden>
+        <h2 id="captureTitle">Add photo</h2>
+        <input type="file" accept="image/*" capture="environment" id="cam">
+        <p id="status"></p>
+        <button onclick="show('#subtasks')">Back</button>
+    </section>
 
 
 <script src="api.js"></script>
