@@ -20,6 +20,17 @@
   <h2 id="welcome"></h2>
   <p>Signed in. Real screens go here next.</p>
 </section>
+<section id="home" hidden>
+  <h2 id="welcome"></h2>
+  <button onclick="show('#capture')">Add evidence photo</button>
+</section>
+
+<section id="capture" hidden>
+  <h2>Add photo</h2>
+  <input type="file" accept="image/*" capture="environment" id="cam">
+  <p id="status"></p>
+  <button onclick="show('#home')">Back</button>
+</section>
 
 <script src="api.js"></script>
 <script src="app.js"></script>
