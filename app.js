@@ -79,15 +79,33 @@ async function openTask(taskId) {
     const subtasks = await read('Subtasks');
     state.subtasks = subtasks.filter(s => s.task_id === taskId);
 
+    const reviews = await read('Reviews');
+    state.reviews = reviews.filter(r => r.target_type === 'subtask');
+
     const el = document.getElementById('subtaskList');
     if (state.subtasks.length === 0) {
         el.innerHTML = '<p>No subtasks here yet.</p>';
     } else {
-        el.innerHTML = state.subtasks.map(s => `
-      <button onclick="openSubtask('${s.id}')">${s.title} <small>(needs: ${s.requires})</small></button>
-    `).join('');
+        el.innerHTML = state.subtasks.map(s => {
+            const badge = statusBadge(s.id);
+            return `
+        <button onclick="openSubtask('${s.id}')">
+          ${s.title} <small>(needs: ${s.requires})</small> ${badge}
+        </button>
+      `;
+        }).join('');
     }
     show('#subtasks');
+}
+
+// Find the most recent review for a subtask and return a small status label
+function statusBadge(subtaskId) {
+    const matches = state.reviews.filter(r => r.target_id === subtaskId);
+    if (matches.length === 0) return '';
+    const latest = matches.sort((a, b) => new Date(b.created) - new Date(a.created))[0];
+    return latest.decision === 'accepted'
+        ? '<span style="color:green;">✅ Accepted</span>'
+        : '<span style="color:orange;">↩️ Changes requested</span>';
 }
 
 async function openSubtask(subtaskId) {
@@ -98,6 +116,16 @@ async function openSubtask(subtaskId) {
     } else {
         document.getElementById('captureTitle').textContent = 'Add evidence: ' + state.subtask.title;
         document.getElementById('status').textContent = '';
+
+        const matches = state.reviews.filter(r => r.target_id === subtaskId);
+        if (matches.length > 0) {
+            const latest = matches.sort((a, b) => new Date(b.created) - new Date(a.created))[0];
+            const feedback = latest.decision === 'changes' && latest.comment
+                ? `<p style="color:orange;">Assessor feedback: ${latest.comment}</p>`
+                : '';
+            document.getElementById('status').innerHTML = feedback;
+        }
+
         show('#capture');
     }
 }
@@ -139,7 +167,15 @@ document.getElementById('cam').onchange = async () => {
     const dataUrl = await shrink(file, 1400);
 
     statusEl.textContent = 'Uploading…';
-    const { url } = await upload(file.name, 'image/jpeg', dataUrl);
+    const uploadResult = await upload(file.name, 'image/jpeg', dataUrl);
+
+    if (uploadResult.error) {
+        statusEl.textContent = '❌ Upload failed: ' + uploadResult.error;
+        console.error('Upload error:', uploadResult.error, uploadResult.stack);
+        return;
+    }
+
+    const url = uploadResult.url;
 
     statusEl.textContent = 'Saving…';
     const row = await append('Evidence', {
@@ -154,48 +190,51 @@ document.getElementById('cam').onchange = async () => {
 };
 
 async function openReview(subtask) {
-  document.getElementById('reviewTitle').textContent = 'Review: ' + subtask.title;
-  document.getElementById('reviewStatus').textContent = 'Loading…';
+    document.getElementById('reviewTitle').textContent = 'Review: ' + subtask.title;
+    document.getElementById('reviewStatus').textContent = 'Loading…';
 
-  const evidence = await read('Evidence');
-  const items = evidence.filter(e => e.subtask_id === subtask.id);
+    const evidence = await read('Evidence');
+    const items = evidence.filter(e => e.subtask_id === subtask.id);
 
-  const el = document.getElementById('evidenceList');
-  if (items.length === 0) {
-    el.innerHTML = '<p>No evidence submitted yet.</p>';
-  } else {
-    el.innerHTML = items.map(e => `
+    const el = document.getElementById('evidenceList');
+    if (items.length === 0) {
+        el.innerHTML = '<p>No evidence submitted yet.</p>';
+    } else {
+        el.innerHTML = items.map(e => `
       <div>
         <p>${e.type} — by ${e.by_email} — ${e.created}</p>
         ${e.type === 'photo' ? `<img src="${e.url}" style="width:100%;border-radius:8px;">` : `<a href="${e.url}" target="_blank">${e.url}</a>`}
         ${e.note ? `<p>${e.note}</p>` : ''}
       </div>
     `).join('');
-  }
+    }
 
-  document.getElementById('reviewActions').innerHTML = `
+    document.getElementById('reviewActions').innerHTML = `
     <button onclick="decide('accepted')">Accept</button>
     <button onclick="decide('changes')">Request changes</button>
   `;
-  document.getElementById('reviewStatus').textContent = '';
-  show('#review');
+    document.getElementById('reviewStatus').textContent = '';
+    show('#review');
 }
 
 async function decide(decision) {
-  const statusEl = document.getElementById('reviewStatus');
-  statusEl.textContent = 'Saving…';
+    const statusEl = document.getElementById('reviewStatus');
+    const comment = document.getElementById('reviewComment').value.trim();
+    statusEl.textContent = 'Saving…';
 
-  const result = await append('Reviews', {
-    target_type: 'subtask',
-    target_id: state.subtask.id,
-    decision,
-    by_email: state.me.email
-  });
+    const result = await append('Reviews', {
+        target_type: 'subtask',
+        target_id: state.subtask.id,
+        decision,
+        comment,
+        by_email: state.me.email
+    });
 
-  if (result.error) {
-    statusEl.textContent = '❌ ' + result.error;
-    return;
-  }
+    if (result.error) {
+        statusEl.textContent = '❌ ' + result.error;
+        return;
+    }
 
-  statusEl.textContent = decision === 'accepted' ? '✅ Accepted' : '↩️ Changes requested';
+    statusEl.textContent = decision === 'accepted' ? '✅ Accepted' : '↩️ Changes requested';
+    document.getElementById('reviewComment').value = '';
 }
