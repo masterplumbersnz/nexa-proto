@@ -59,16 +59,24 @@ document.getElementById('cam').onchange = async () => {
   const dataUrl = await shrink(file, 1400);
 
   statusEl.textContent = 'Uploading…';
-  const { url } = await upload(file.name, 'image/jpeg', dataUrl);
+const uploadResult = await upload(file.name, 'image/jpeg', dataUrl);
 
-  statusEl.textContent = 'Saving…';
-  const row = await append('Evidence', {
-    subtask_id: 'test-subtask',      // placeholder until Tasks/Subtasks screens exist
-    type: 'photo',
-    url,
-    by_email: state.me.email
-  });
+if (uploadResult.error) {
+  statusEl.textContent = '❌ Upload failed: ' + uploadResult.error;
+  console.error('Upload error:', uploadResult.error, uploadResult.stack);
+  return;
+}
 
-  statusEl.textContent = '✅ Uploaded';
-  console.log('Evidence row:', row);
+const url = uploadResult.url;
+
+statusEl.textContent = 'Saving…';
+const row = await append('Evidence', {
+  subtask_id: 'test-subtask',
+  type: 'photo',
+  url,
+  by_email: state.me.email
+});
+
+statusEl.textContent = '✅ Uploaded';
+console.log('Evidence row:', row);
 };
