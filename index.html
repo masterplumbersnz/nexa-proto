@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>NEXA Evidence</title>
+<link rel="stylesheet" href="styles.css">
+<link rel="manifest" href="manifest.json">
+</head>
+<body>
+
+<section id="signIn">
+  <h1>NEXA Evidence</h1>
+  <input id="emailInput" type="email" placeholder="your email">
+  <button onclick="signIn()">Sign in</button>
+  <p id="notInvited" hidden>Email not found — check with your assessor.</p>
+</section>
+
+<section id="home" hidden>
+  <h2 id="welcome"></h2>
+  <p>Signed in. Real screens go here next.</p>
+</section>
+
+<script src="api.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
