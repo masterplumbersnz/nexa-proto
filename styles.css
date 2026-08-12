@@ -1,9 +1,542 @@
-* { box-sizing: border-box; font-family: system-ui, sans-serif; }
-body { margin: 0; padding: 20px; max-width: 480px; margin: 0 auto; }
-input, button {
-  width: 100%; padding: 12px; margin: 8px 0;
-  font-size: 16px; border-radius: 8px; border: 1px solid #ccc;
-  min-height: 44px; /* thumb-friendly hit target */
+/* ==========================================================================
+   NEXA Evidence App â€” stylesheet
+   Extracted from the "Nexa Evidence App v4" prototype.
+   Drop into a static build (GitHub/Netlify prototype or a real front end)
+   and write markup against the classes below.
+
+   Contents
+     1. Tokens
+     2. Base + resets
+     3. Layout shells (phone frame, screen, header, bottom nav)
+     4. Cards & surfaces
+     5. Status chips, tags, dots, progress
+     6. Buttons
+     7. Form controls
+     8. Evidence list & capture row
+     9. Banners, toasts, modals
+    10. Web-platform (desktop) bits
+    11. Utilities
+   ========================================================================== */
+
+/* ---- 1. Tokens ---------------------------------------------------------- */
+@import url('https://fonts.googleapis.com/css2?family=Jost:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap');
+
+:root {
+  /* brand */
+  --nexa-ink:            #124253;  /* primary â€” headers, dark cards, text */
+  --nexa-lime:           #BAD937;  /* accent â€” progress, marks, highlights */
+  --nexa-lime-deep:      #5A731A;  /* lime text on tint */
+  --nexa-lime-tint:      #EFF5D3;
+
+  /* neutrals */
+  --nexa-bg:             #EDF1F0;  /* desktop / page ground */
+  --nexa-bg-app:         #F5F7F6;  /* inside the phone */
+  --nexa-surface:        #FFFFFF;
+  --nexa-text:           #124253;
+  --nexa-text-muted:     #4A6570;
+  --nexa-text-faint:     #8AA0A8;
+  --nexa-border:         #C6D2CE;  /* control borders, 1.5px */
+  --nexa-rule:           #E3E9E7;  /* hairlines, track fills */
+  --nexa-chip-bg:        #E7EDEB;  /* neutral chip / code pill */
+  --nexa-chip-fg:        #6B8089;
+
+  /* status */
+  --nexa-success:        #2B8D62;
+  --nexa-success-tint:   #DDF0E8;
+  --nexa-info:           #1B6E93;
+  --nexa-info-tint:      #D9F1FC;
+  --nexa-warn:           #B4622B;
+  --nexa-warn-tint:      #FCE8D8;
+  --nexa-offline:        #F7A972;
+  --nexa-offline-fg:     #5C3413;
+
+  /* type */
+  --nexa-font: 'Jost', Futura, 'Century Gothic', -apple-system, sans-serif;
+  --nexa-font-mono: 'SF Mono', Consolas, ui-monospace, monospace;
+
+  /* radii â€” square-ish 5/8 for pills of data, 11â€“14 for cards, 999 for chips */
+  --nexa-r-xs: 5px;
+  --nexa-r-sm: 8px;
+  --nexa-r-md: 11px;
+  --nexa-r-lg: 12px;
+  --nexa-r-xl: 14px;
+  --nexa-r-sheet: 20px;
+  --nexa-r-pill: 999px;
+
+  /* elevation */
+  --nexa-shadow-sm: 0 1px 3px rgba(18, 66, 83, 0.10);
+  --nexa-shadow-md: 0 4px 14px rgba(18, 66, 83, 0.14);
+  --nexa-shadow-lg: 0 -6px 24px rgba(18, 66, 83, 0.18);
 }
-button { background: #1d1f20; color: white; border: none; }
-h1, h2 { margin: 0 0 12px; }
+
+/* ---- 2. Base + resets --------------------------------------------------- */
+html, body { margin: 0; padding: 0; background: var(--nexa-bg); }
+
+body {
+  font-family: var(--nexa-font);
+  color: var(--nexa-text);
+  -webkit-font-smoothing: antialiased;
+  text-wrap: pretty;
+}
+
+* { box-sizing: border-box; }
+
+a { color: var(--nexa-ink); }
+a:hover { color: var(--nexa-success); }
+
+button { font-family: var(--nexa-font); }
+
+:focus-visible { outline: 2px solid var(--nexa-lime); outline-offset: 2px; }
+
+::selection { background: var(--nexa-lime); color: var(--nexa-ink); }
+
+/* the app hides scrollbars inside the phone; keep it scoped */
+.nexa-screen::-webkit-scrollbar { width: 0; height: 0; }
+
+/* ---- 3. Layout shells -------------------------------------------------- */
+.nexa-app {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: var(--nexa-bg-app);
+  position: relative;
+  overflow: hidden;
+}
+
+/* dark title bar; 60px top padding clears the iOS status bar */
+.nexa-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 60px 18px 14px;
+  background: var(--nexa-ink);
+  color: #fff;
+}
+.nexa-header__title {
+  flex: 1;
+  font-size: 17px;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.nexa-header__back {
+  background: none;
+  border: none;
+  color: var(--nexa-lime);
+  font-size: 15px;
+  font-weight: 600;
+  padding: 4px 0;
+  cursor: pointer;
+}
+.nexa-header__role {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  background: rgba(186, 217, 55, 0.2);
+  color: var(--nexa-lime);
+  padding: 3px 9px;
+  border-radius: var(--nexa-r-pill);
+}
+
+/* scrolling body; bottom padding clears the tab bar */
+.nexa-screen {
+  flex: 1;
+  overflow-y: auto;
+  padding: 18px 16px 90px;
+}
+.nexa-screen__title    { font-size: 24px; font-weight: 700; margin: 2px 2px 2px; }
+.nexa-screen__subtitle { font-size: 14px; color: var(--nexa-text-muted); margin: 0 2px 18px; }
+
+/* bottom tab bar */
+.nexa-tabbar {
+  position: absolute;
+  left: 0; right: 0; bottom: 0;
+  display: flex;
+  background: var(--nexa-surface);
+  border-top: 1px solid var(--nexa-rule);
+  padding: 10px 0 26px;
+}
+.nexa-tab {
+  flex: 1;
+  min-height: 44px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  color: var(--nexa-text-faint);
+}
+.nexa-tab[aria-current='page'] { color: var(--nexa-ink); }
+
+/* ---- 4. Cards & surfaces ----------------------------------------------- */
+.nexa-card {
+  background: var(--nexa-surface);
+  border-radius: var(--nexa-r-xl);
+  padding: 15px 16px;
+  box-shadow: var(--nexa-shadow-sm);
+}
+.nexa-card--tight  { border-radius: var(--nexa-r-lg); padding: 12px 15px; }
+.nexa-card--dark   { background: var(--nexa-ink); color: #fff; box-shadow: none; }
+.nexa-card--link   { cursor: pointer; display: flex; align-items: center; gap: 11px; }
+.nexa-card--link:hover { box-shadow: var(--nexa-shadow-md); }
+
+.nexa-card__title  { font-size: 16px; font-weight: 600; line-height: 1.25; }
+.nexa-card__meta   { font-size: 12.5px; color: var(--nexa-text-muted); }
+.nexa-card__label  { font-size: 10px; letter-spacing: 1.5px; color: var(--nexa-text-muted); margin-bottom: 2px; }
+.nexa-card--dark .nexa-card__label { color: var(--nexa-lime); letter-spacing: 1.5px; font-size: 11px; font-weight: 600; }
+.nexa-card__row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 10px;
+  margin-bottom: 4px;
+}
+
+.nexa-stack { display: flex; flex-direction: column; gap: 12px; }
+
+/* group heading above a list of cards (assessor / admin lists) */
+.nexa-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  color: var(--nexa-text-muted);
+  margin: 14px 2px 8px;
+}
+
+/* ---- 5. Chips, tags, dots, progress ------------------------------------ */
+.nexa-chip {
+  flex: none;
+  display: inline-block;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  padding: 3px 10px;
+  border-radius: var(--nexa-r-pill);
+  background: var(--nexa-chip-bg);
+  color: var(--nexa-chip-fg);
+}
+.nexa-chip--done     { background: var(--nexa-success-tint); color: var(--nexa-success); }
+.nexa-chip--ready    { background: var(--nexa-lime-tint);    color: var(--nexa-lime-deep); }
+.nexa-chip--progress { background: var(--nexa-info-tint);    color: var(--nexa-info); }
+.nexa-chip--changes  { background: var(--nexa-warn-tint);    color: var(--nexa-warn); }
+.nexa-chip--todo     { background: var(--nexa-chip-bg);      color: var(--nexa-chip-fg); }
+.nexa-chip--lime     { background: var(--nexa-lime);         color: var(--nexa-ink); }
+
+/* unit-standard code pill */
+.nexa-code {
+  font-family: var(--nexa-font-mono);
+  font-size: 11px;
+  font-weight: 600;
+  background: var(--nexa-chip-bg);
+  padding: 2px 7px;
+  border-radius: var(--nexa-r-xs);
+}
+.nexa-card--dark .nexa-code { background: rgba(186, 217, 55, 0.2); color: var(--nexa-lime); }
+
+/* completion dot on task / sub-task rows */
+.nexa-dot {
+  flex: none;
+  width: 26px; height: 26px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  font-weight: 700;
+  background: var(--nexa-rule);
+  color: transparent;
+}
+.nexa-dot--full { background: var(--nexa-lime); color: var(--nexa-ink); }
+
+/* progress bar */
+.nexa-progress {
+  height: 6px;
+  background: var(--nexa-rule);
+  border-radius: var(--nexa-r-pill);
+  overflow: hidden;
+  margin-bottom: 8px;
+}
+.nexa-progress__fill {
+  height: 100%;
+  background: var(--nexa-lime);
+  border-radius: var(--nexa-r-pill);
+  transition: width 0.25s ease;
+}
+
+/* ---- 6. Buttons -------------------------------------------------------- */
+.nexa-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 12px 16px;
+  border: none;
+  border-radius: var(--nexa-r-md);
+  font-family: var(--nexa-font);
+  font-size: 14.5px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+.nexa-btn--primary { background: var(--nexa-ink);  color: #fff; }
+.nexa-btn--primary:hover  { background: #0D3241; }
+.nexa-btn--primary:active { background: #092836; }
+
+.nexa-btn--accent  { background: var(--nexa-lime); color: var(--nexa-ink); font-weight: 700; }
+.nexa-btn--accent:hover  { background: #A9C72C; }
+
+.nexa-btn--outline {
+  background: var(--nexa-surface);
+  color: var(--nexa-ink);
+  border: 1.5px solid var(--nexa-border);
+}
+.nexa-btn--outline:hover { background: var(--nexa-bg-app); }
+
+.nexa-btn--ghost {
+  background: none;
+  color: var(--nexa-text-muted);
+  border: 1.5px solid var(--nexa-border);
+}
+.nexa-btn--danger  { background: var(--nexa-warn-tint); color: var(--nexa-warn); font-weight: 700; }
+.nexa-btn--block   { width: 100%; }
+.nexa-btn:disabled { opacity: 0.45; cursor: default; }
+
+.nexa-btn-row { display: flex; gap: 9px; margin-top: 12px; }
+.nexa-btn-row > .nexa-btn { flex: 1; }
+
+/* filter chip (Overdue, etc.) */
+.nexa-filter {
+  min-height: 40px;
+  padding: 10px 14px;
+  border-radius: var(--nexa-r-sm);
+  border: 1.5px solid var(--nexa-border);
+  background: var(--nexa-surface);
+  color: var(--nexa-text-muted);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.nexa-filter[aria-pressed='true'] {
+  background: var(--nexa-ink);
+  border-color: var(--nexa-ink);
+  color: #fff;
+}
+
+/* ---- 7. Form controls -------------------------------------------------- */
+.nexa-input,
+.nexa-textarea {
+  width: 100%;
+  font-family: var(--nexa-font);
+  font-size: 14.5px;
+  color: var(--nexa-text);
+  background: var(--nexa-surface);
+  border: 1.5px solid var(--nexa-border);
+  border-radius: var(--nexa-r-md);
+  padding: 11px 12px;
+}
+.nexa-input { min-height: 44px; border-radius: var(--nexa-r-sm); }
+.nexa-textarea { height: 120px; resize: none; line-height: 1.45; }
+.nexa-input::placeholder,
+.nexa-textarea::placeholder { color: var(--nexa-text-faint); }
+.nexa-input:focus,
+.nexa-textarea:focus { outline: 2px solid var(--nexa-lime); outline-offset: 1px; border-color: var(--nexa-lime); }
+
+.nexa-field { display: flex; flex-direction: column; gap: 6px; margin-bottom: 12px; }
+.nexa-field > label {
+  font-size: 10px;
+  letter-spacing: 1.5px;
+  font-weight: 600;
+  text-transform: uppercase;
+  color: var(--nexa-text-muted);
+}
+
+/* attestation checkbox row */
+.nexa-check { display: flex; gap: 10px; align-items: flex-start; margin-bottom: 11px; cursor: pointer; }
+.nexa-check__box {
+  flex: none;
+  width: 21px; height: 21px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  font-weight: 700;
+  margin-top: 1px;
+  background: var(--nexa-surface);
+  border: 1.5px solid var(--nexa-border);
+  color: transparent;
+}
+.nexa-check input:checked + .nexa-check__box,
+.nexa-check__box--on {
+  background: var(--nexa-lime);
+  border-color: var(--nexa-lime);
+  color: var(--nexa-ink);
+}
+.nexa-check__label { font-size: 13px; line-height: 1.45; }
+
+/* search row */
+.nexa-searchrow { display: flex; gap: 8px; margin: 0 0 14px; }
+.nexa-searchrow > .nexa-input { flex: 1; min-width: 0; }
+
+/* ---- 8. Evidence list & capture --------------------------------------- */
+.nexa-evidence {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  background: var(--nexa-surface);
+  border-radius: var(--nexa-r-lg);
+  padding: 11px 13px;
+  margin-bottom: 8px;
+  box-shadow: var(--nexa-shadow-sm);
+}
+.nexa-evidence__icon {
+  flex: none;
+  width: 34px; height: 34px;
+  border-radius: var(--nexa-r-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--nexa-lime-tint);
+  color: var(--nexa-lime-deep);
+  font-size: 15px;
+  font-weight: 700;
+}
+.nexa-evidence__label { font-size: 14px; font-weight: 600; }
+.nexa-evidence__meta  { font-size: 12px; color: var(--nexa-text-muted); }
+
+/* capture buttons â€” photo / video / note / signature */
+.nexa-capture {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 9px;
+  margin-top: 12px;
+}
+.nexa-capture > .nexa-btn { min-height: 52px; }
+
+/* requirement line under a sub-task */
+.nexa-req { font-size: 12.5px; color: var(--nexa-text-muted); }
+
+/* ---- 9. Banners, toasts, modals --------------------------------------- */
+.nexa-banner {
+  font-size: 13px;
+  font-weight: 600;
+  border-radius: var(--nexa-r-md);
+  padding: 11px 13px;
+  margin-bottom: 12px;
+}
+.nexa-banner--warn { background: var(--nexa-warn-tint); color: var(--nexa-warn); }
+.nexa-banner--info { background: var(--nexa-info-tint);  color: var(--nexa-info); }
+.nexa-banner--ok   { background: var(--nexa-success-tint); color: var(--nexa-success); }
+
+/* full-width offline strip under the header */
+.nexa-offline {
+  background: var(--nexa-offline);
+  color: var(--nexa-offline-fg);
+  font-size: 12.5px;
+  font-weight: 600;
+  text-align: center;
+  padding: 6px;
+}
+
+@keyframes nexa-toast-in {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.nexa-toast {
+  position: absolute;
+  left: 16px; right: 16px; bottom: 96px;
+  background: var(--nexa-ink);
+  color: #fff;
+  font-size: 13px;
+  font-weight: 500;
+  text-align: center;
+  border-radius: var(--nexa-r-md);
+  padding: 11px 14px;
+  box-shadow: var(--nexa-shadow-md);
+  animation: nexa-toast-in 0.18s ease-out;
+  z-index: 40;
+}
+
+/* bottom sheet modal */
+.nexa-sheet-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(18, 66, 83, 0.45);
+  display: flex;
+  align-items: flex-end;
+  z-index: 50;
+}
+.nexa-sheet {
+  width: 100%;
+  background: var(--nexa-surface);
+  border-radius: var(--nexa-r-sheet) var(--nexa-r-sheet) 0 0;
+  padding: 20px 18px 26px;
+  box-shadow: var(--nexa-shadow-lg);
+}
+.nexa-sheet__title { font-size: 17px; font-weight: 700; margin-bottom: 12px; }
+
+/* notification popover */
+.nexa-popover {
+  position: absolute;
+  top: 96px; right: 14px;
+  width: 262px;
+  background: var(--nexa-surface);
+  border-radius: var(--nexa-r-lg);
+  padding: 6px;
+  box-shadow: var(--nexa-shadow-md);
+  z-index: 45;
+}
+
+/* ---- 10. Web-platform (desktop) bits --------------------------------- */
+.nexa-topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  padding: 20px 36px;
+  background: var(--nexa-ink);
+  color: #fff;
+}
+.nexa-logo {
+  font-size: 30px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  line-height: 1;
+}
+.nexa-logo em { color: var(--nexa-lime); font-style: normal; } /* the A */
+.nexa-logo-sub {
+  font-size: 11px;
+  letter-spacing: 3.5px;
+  font-weight: 500;
+  opacity: 0.85;
+}
+
+.nexa-table { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+.nexa-table th {
+  text-align: left;
+  font-size: 10px;
+  letter-spacing: 1.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--nexa-text-muted);
+  padding: 10px 12px;
+  border-bottom: 1.5px solid var(--nexa-rule);
+}
+.nexa-table td { padding: 12px; border-bottom: 1px solid var(--nexa-rule); }
+.nexa-table tbody tr:hover { background: var(--nexa-bg-app); }
+
+/* ---- 11. Utilities ---------------------------------------------------- */
+.nexa-muted   { color: var(--nexa-text-muted); }
+.nexa-faint   { color: var(--nexa-text-faint); }
+.nexa-kicker  { font-size: 11px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: var(--nexa-text-muted); }
+.nexa-truncate { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.nexa-row     { display: flex; align-items: center; gap: 8px; }
+.nexa-spread  { display: flex; justify-content: space-between; align-items: center; }
+.nexa-grow    { flex: 1; min-width: 0; }
