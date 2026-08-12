@@ -9,47 +9,70 @@
 </head>
 <body>
 
-<section id="signIn">
-  <h1>NEXA Evidence</h1>
-  <input id="emailInput" type="email" placeholder="your email">
-  <button onclick="signIn()">Sign in</button>
-  <p id="notInvited" hidden>Email not found — check with your assessor.</p>
-</section>
+<div class="nexa-app">
 
-<section id="home" hidden>
-        <h2 id="welcome"></h2>
-        <div id="projectList"></div>
+  <div class="nexa-header">
+    <button class="nexa-header__back" id="backBtn" style="display:none;">‹ Back</button>
+    <div class="nexa-header__title" id="headerTitle">NEXA</div>
+    <span class="nexa-header__role" id="headerRole" style="display:none;"></span>
+  </div>
+
+  <div class="nexa-screen">
+
+    <section id="signIn">
+      <div style="text-align:center; margin:36px 0 28px;">
+        <div class="nexa-logo">NEX<em>A</em></div>
+        <div class="nexa-logo-sub nexa-muted">EVIDENCE APP</div>
+      </div>
+      <div class="nexa-field">
+        <label>Email</label>
+        <input class="nexa-input" id="emailInput" type="email" placeholder="you@example.com">
+      </div>
+      <button class="nexa-btn nexa-btn--primary nexa-btn--block" onclick="signIn()">Sign in</button>
+      <p class="nexa-banner nexa-banner--warn" id="notInvited" hidden>Email not found — check with your assessor.</p>
+    </section>
+
+    <section id="home" hidden>
+      <div class="nexa-group">PROJECTS</div>
+      <div class="nexa-stack" id="projectList"></div>
     </section>
 
     <section id="tasks" hidden>
-        <h2 id="projectTitle"></h2>
-        <div id="taskList"></div>
-        <button onclick="show('#home')">Back</button>
+      <div class="nexa-group">TASKS</div>
+      <div class="nexa-stack" id="taskList"></div>
     </section>
 
     <section id="subtasks" hidden>
-        <h2 id="taskTitle"></h2>
-        <div id="subtaskList"></div>
-        <button onclick="show('#tasks')">Back</button>
+      <div class="nexa-group">SUBTASKS</div>
+      <div class="nexa-stack" id="subtaskList"></div>
     </section>
 
     <section id="capture" hidden>
-        <h2 id="captureTitle">Add photo</h2>
-        <input type="file" accept="image/*" capture="environment" id="cam">
-        <p id="status"></p>
-        <button onclick="show('#subtasks')">Back</button>
+      <div id="captureFeedback"></div>
+      <div class="nexa-card" style="margin-bottom:14px;">
+        <div class="nexa-card__label">EVIDENCE REQUIRED</div>
+        <div class="nexa-card__title" id="captureSubtaskTitle"></div>
+      </div>
+      <div class="nexa-capture">
+        <label class="nexa-btn nexa-btn--accent" for="cam">📷 Take Photo</label>
+      </div>
+      <input type="file" accept="image/*" capture="environment" id="cam" style="display:none;">
+      <p class="nexa-muted" id="status"></p>
     </section>
 
     <section id="review" hidden>
-        <h2 id="reviewTitle"></h2>
-        <div id="evidenceList"></div>
-        <textarea id="reviewComment" placeholder="Optional feedback for the learner…" rows="3"
-            style="width:100%;padding:10px;font-size:16px;border-radius:8px;border:1px solid #ccc;"></textarea>
-        <div id="reviewActions"></div>
-        <p id="reviewStatus"></p>
-        <button onclick="show('#subtasks')">Back</button>
+      <div class="nexa-group">SUBMITTED EVIDENCE</div>
+      <div id="evidenceList"></div>
+      <div class="nexa-field">
+        <label>Feedback (optional)</label>
+        <textarea class="nexa-textarea" id="reviewComment" placeholder="Leave a note for the learner…"></textarea>
+      </div>
+      <div class="nexa-btn-row" id="reviewActions"></div>
+      <p class="nexa-muted" id="reviewStatus"></p>
     </section>
 
+  </div>
+</div>
 
 <script src="api.js"></script>
 <script src="app.js"></script>
