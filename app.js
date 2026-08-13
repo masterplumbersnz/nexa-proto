@@ -103,7 +103,7 @@ async function openProject(projectId) {
   state.project = state.projects.find(p => p.id === projectId);
 
   const tasks = await read('Tasks');
-  state.tasks = tasks.filter(t => t.project_id === projectId)
+  state.tasks = tasks.filter(t => t.unit_standard === state.project.unit_standard)
                       .sort((a, b) => (a.sort || 0) - (b.sort || 0));
 
   const el = document.getElementById('taskList');
@@ -124,7 +124,7 @@ async function openTask(taskId) {
   state.subtasks = subtasks.filter(s => s.task_id === taskId);
 
   const reviews = await read('Reviews');
-  state.reviews = reviews.filter(r => r.target_type === 'subtask');
+  state.reviews = reviews.filter(r => r.target_type === 'subtask' && r.project_id === state.project.id);
 
   const el = document.getElementById('subtaskList');
   el.innerHTML = state.subtasks.length === 0
@@ -214,6 +214,7 @@ document.getElementById('cam').onchange = async () => {
   statusEl.textContent = 'Saving…';
   const row = await append('Evidence', {
     subtask_id: state.subtask.id,
+    project_id: state.project.id,
     type: 'photo',
     url,
     by_email: state.me.email
@@ -225,7 +226,7 @@ document.getElementById('cam').onchange = async () => {
 
 async function openReview(subtask) {
   const evidence = await read('Evidence');
-  const items = evidence.filter(e => e.subtask_id === subtask.id);
+  const items = evidence.filter(e => e.subtask_id === subtask.id && e.project_id === state.project.id);
 
   const el = document.getElementById('evidenceList');
   el.innerHTML = items.length === 0
@@ -259,6 +260,7 @@ async function decide(decision) {
   const result = await append('Reviews', {
     target_type: 'subtask',
     target_id: state.subtask.id,
+    project_id: state.project.id,
     decision,
     comment,
     by_email: state.me.email
